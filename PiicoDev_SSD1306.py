@@ -47,6 +47,8 @@ if PLATFORM_BUILD == "microbit":
     from ustruct import pack_into
 elif PLATFORM_BUILD == "Linux":
     from struct import pack_into
+elif PLATFORM_BUILD == "micropython":
+    pass  # This is imported later.
 else:
     raise NotImplementedError(f"Unsupported platform {PLATFORM_BUILD}")
 

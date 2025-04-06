@@ -28,6 +28,10 @@ Issues = "https://github.com/CoreElectronics/CE-PiicoDev-SSD1306-MicroPython-Mod
 [tool.setuptools]
 py-modules = ["PiicoDev_SSD1306"]
 
+# install the font into site‑packages/share/piicodev‑ssd1306
+[tool.setuptools.data-files]
+"share/piicodev-ssd1306" = ["font-pet-me-128.dat"]
+
 [project.optional-dependencies]
 dev = [
     "python-minifier @ git+https://github.com/garynthompson/python-minifier.git@remove_unused_platforms"

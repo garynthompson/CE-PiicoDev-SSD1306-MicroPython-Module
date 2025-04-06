@@ -61,6 +61,8 @@ if PLATFORM_BUILD in ("microbit", "Linux"):
         A mixin to provide compatibility with MicroPython
         """
 
+        resource_path = ""
+
         def __init__(self, *args, **kwargs):
             pass
 
@@ -153,7 +155,7 @@ if PLATFORM_BUILD in ("microbit", "Linux"):
                 self.hline(x, i, w, c)
 
         def text(self, text, x, y, c=1):
-            font_file = open("font-pet-me-128.dat", "rb")
+            font_file = open(f"{self.resource_path}font-pet-me-128.dat", "rb")
             font = bytearray(font_file.read())
             for text_index in range(0, len(text)):
                 for col in range(8):

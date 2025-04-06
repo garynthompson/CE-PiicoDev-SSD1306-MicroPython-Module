@@ -30,7 +30,7 @@ py-modules = ["PiicoDev_SSD1306"]
 
 # install the font into site‑packages/share/piicodev‑ssd1306
 [tool.setuptools.data-files]
-"share/piicodev-ssd1306" = ["font-pet-me-128.dat"]
+"share/PiicoDev_SSD1306" = ["font-pet-me-128.dat"]
 
 [project.optional-dependencies]
 dev = [

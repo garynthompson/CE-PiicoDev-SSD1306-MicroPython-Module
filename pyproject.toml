@@ -1,20 +1,21 @@
-[tool.poetry]
+[project]
 name = "PiicoDev-SSD1306"
-version = "1.10.1"
+version = "1.10.2"
 description = "Drivers for the PiicoDev ecosystem of sensors and modules"
-authors = ["Core Electronics <production.inbox@coreelectronics.com.au>"]
 license = "MIT"
 readme = "README.md"
-classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: Implementation :: MicroPython",
-        "License :: OSI Approved :: MIT License",
-    ]
+requires-python = ">=3.11"
+authors = [
+    { name="Core Electronics", email="production.inbox@coreelectronics.com.au" }
+]
 
-packages = [
-    { include = "PiicoDev_SSD1306.py" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: MicroPython",
+]
+
+dependencies = [
+    "PiicoDev_Unified @ git+https://github.com/garynthompson/CE-PiicoDev-Unified.git@garys"
 ]
 
 [project.urls]
@@ -24,15 +25,11 @@ Repository = "https://github.com/CoreElectronics/CE-PiicoDev-SSD1306-MicroPython
 Issues = "https://github.com/CoreElectronics/CE-PiicoDev-SSD1306-MicroPython-Module/issues"
 #Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
+[tool.setuptools]
+py-modules = ["PiicoDev_SSD1306"]
 
-[tool.poetry.dependencies]
-python = ">=3.7"
+[project.optional-dependencies]
+dev = [
+    "python-minifier @ git+https://github.com/garynthompson/python-minifier.git@remove_unused_platforms"
+]
 
-PiicoDev_Unified = { git = "https://github.com/garynthompson/CE-PiicoDev-Unified.git", branch = "main" }
-
-
-[tool.poetry.group.dev.dependencies]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

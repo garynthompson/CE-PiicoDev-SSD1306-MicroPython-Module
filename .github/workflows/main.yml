@@ -24,13 +24,20 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: install python packages
-        run: pip install python-minifier 
+        run: pip install git+https://github.com/garynthompson/python-minifier.git@remove_unused_platforms#egg=python-minifier
 
-      - name: run minifier
-        run: pyminify PiicoDev_SSD1306.py > min/PiicoDev_SSD1306.py
+      - name: run minifier generic
+        run: pyminify --remove-literal-statements PiicoDev_SSD1306.py > min/PiicoDev_Unified.py
+
+      - name: run minifier small micropython
+        run: pyminify --remove-literal-statements --remove-unused-platforms --platform-test-key "PLATFORM_BUILD" --platform-preserve-value "micropython" PiicoDev_SSD1306.py > min/PiicoDev_SSD1306_micropython.py
+
+      - name: run minifier small microbit
+        run: pyminify --remove-literal-statements --remove-unused-platforms --platform-test-key "PLATFORM_BUILD" --platform-preserve-value "microbit" PiicoDev_SSD1306.py > min/PiicoDev_SSD1306_microbit.py
+
           
       - name: commit files
         run: |

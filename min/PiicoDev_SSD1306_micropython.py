@@ -1,5 +1,3 @@
-_D='Linux'
-_C='microbit'
 _B=False
 _A=None
 from PiicoDev_Unified import*
@@ -25,10 +23,8 @@ _SET_CHARGE_PUMP=141
 WIDTH=128
 HEIGHT=64
 DEFAULT_ADDRESS=60
-if PLATFORM_BUILD==_C:from microbit import*;from utime import sleep_ms;from ustruct import pack_into
-elif PLATFORM_BUILD==_D:from struct import pack_into
-else:raise NotImplementedError(f"Unsupported platform {PLATFORM_BUILD}")
-if PLATFORM_BUILD in(_C,_D):
+raise NotImplementedError(f"Unsupported platform {PLATFORM_BUILD}")
+if PLATFORM_BUILD in('microbit','Linux'):
 	class FrameBuffer:
 		def __init__(self,*args,**kwargs):0
 		def _set_pos(self,col=0,page=0):self.write_cmd(176|page);c1,c2=col*2&15,col>>3;self.write_cmd(0|c1);self.write_cmd(16|c2)
@@ -124,10 +120,4 @@ def _get_address(asw,address):
 		else:print(compat_str)
 	except:print(compat_str)
 	return _a
-if PLATFORM_BUILD=='micropython':
-	def create_PiicoDev_SSD1306(address=DEFAULT_ADDRESS,bus=_A,freq=_A,sda=_A,scl=_A,asw=_A):_a=_get_address(asw,address);display=PiicoDev_SSD1306(addr=_a,bus=bus,freq=freq,sda=sda,scl=scl);return display
-elif PLATFORM_BUILD==_C:
-	def create_PiicoDev_SSD1306(address=DEFAULT_ADDRESS,bus=_A,freq=_A,sda=_A,scl=_A,asw=_A):_a=_get_address(asw,address);display=PiicoDev_SSD1306(addr=_a,freq=freq);return display
-elif PLATFORM_BUILD==_D:
-	def create_PiicoDev_SSD1306(address=DEFAULT_ADDRESS,bus=_A,freq=_A,sda=_A,scl=_A,asw=_A):_a=_get_address(asw,address);display=PiicoDev_SSD1306(addr=_a,freq=freq);return display
-else:raise NotImplementedError(f"Unsupported platform {PLATFORM_BUILD}")
+def create_PiicoDev_SSD1306(address=DEFAULT_ADDRESS,bus=_A,freq=_A,sda=_A,scl=_A,asw=_A):_a=_get_address(asw,address);display=PiicoDev_SSD1306(addr=_a,bus=bus,freq=freq,sda=sda,scl=scl);return display

@@ -1,6 +1,6 @@
 [project]
 name = "PiicoDev-SSD1306"
-version = "1.10.2"
+version = "2.0.0-alpha1"
 description = "Drivers for the PiicoDev ecosystem of sensors and modules"
 license = "MIT"
 readme = "README.md"

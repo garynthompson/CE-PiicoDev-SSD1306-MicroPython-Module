@@ -1,31 +1,39 @@
-_B=False
+_B='big'
 _A=None
 from PiicoDev_Unified import*
 from math import cos,sin,radians
-_SET_CONTRAST=129
-_SET_ENTIRE_ON=164
-_SET_NORM_INV=166
-_SET_DISP=174
-_SET_MEM_ADDR=32
-_SET_COL_ADDR=33
-_SET_PAGE_ADDR=34
-_SET_DISP_START_LINE=64
-_SET_SEG_REMAP=160
-_SET_MUX_RATIO=168
-_SET_IREF_SELECT=173
-_SET_COM_OUT_DIR=192
-_SET_DISP_OFFSET=211
-_SET_COM_PIN_CFG=218
-_SET_DISP_CLK_DIV=213
-_SET_PRECHARGE=217
-_SET_VCOM_DESEL=219
-_SET_CHARGE_PUMP=141
+_SET_CONTRAST=b'\x81'
+_SET_ENTIRE_ON=b'\xa4'
+_SET_NORM_INV=b'\xa6'
+_SET_DISP=b'\xae'
+_SET_DISP_O1=b'\xaf'
+_SET_MEM_ADDR=b' '
+_SET_COL_ADDR=b'!'
+_SET_PAGE_ADDR=b'"'
+_SET_DISP_START_LINE=b'@'
+_SET_SEG_REMAP=b'\xa0'
+_SET_SEG_REMAP_O1=b'\xa1'
+_SET_MUX_RATIO=b'\xa8'
+_SET_IREF_SELECT=b'\xad'
+_SET_COM_OUT_DIR=b'\xc0'
+_SET_COM_OUT_DIR_O8=b'\xc8'
+_SET_DISP_OFFSET=b'\xd3'
+_SET_COM_PIN_CFG=b'\xda'
+_SET_DISP_CLK_DIV=b'\xd5'
+_SET_PRECHARGE=b'\xd9'
+_SET_VCOM_DESEL=b'\xdb'
+_SET_CHARGE_PUMP=b'\x8d'
+_X0=b'\x00'
+_X1=b'\x01'
 WIDTH=128
 HEIGHT=64
 DEFAULT_ADDRESS=60
-raise NotImplementedError(f"Unsupported platform {PLATFORM_BUILD}")
+_DATA_CMD=int.from_bytes(b'@',_B)
+_CMD=int.from_bytes(b'\x80',_B)
+0
 if PLATFORM_BUILD in('microbit','Linux'):
 	class FrameBuffer:
+		resource_path=''
 		def __init__(self,*args,**kwargs):0
 		def _set_pos(self,col=0,page=0):self.write_cmd(176|page);c1,c2=col*2&15,col>>3;self.write_cmd(0|c1);self.write_cmd(16|c2)
 		def fill(self,c=0):
@@ -52,7 +60,7 @@ if PLATFORM_BUILD in('microbit','Linux'):
 		def fill_rect(self,x,y,w,h,c):
 			for i in range(y,y+h):self.hline(x,i,w,c)
 		def text(self,text,x,y,c=1):
-			font_file=open('font-pet-me-128.dat','rb');font=bytearray(font_file.read())
+			font_file=open(f"{self.resource_path}font-pet-me-128.dat",'rb');font=bytearray(font_file.read())
 			for text_index in range(0,len(text)):
 				for col in range(8):
 					font_data_pixel_values=font[(ord(text[text_index])-32)*8+col]
@@ -62,21 +70,19 @@ if PLATFORM_BUILD in('microbit','Linux'):
 							if x_coordinate<WIDTH and y_coordinate<HEIGHT:self.pixel(x_coordinate,y_coordinate,c)
 else:from framebuf import FrameBuffer,MONO_VLSB
 class PiicoDev_SSD1306(FrameBuffer):
-	def __init__(self,bus=_A,freq=_A,sda=_A,scl=_A,addr=DEFAULT_ADDRESS):self.i2c=create_unified_i2c(bus=bus,freq=freq,sda=sda,scl=scl);self.addr=addr;self.temp=bytearray(2);self.write_list=[b'@',_A];self.width=WIDTH;self.height=HEIGHT;self.pages=HEIGHT//8;self.buffer=bytearray(self.pages*WIDTH);self.comms_err=_B;self.init_display();super().__init__(self.buffer,WIDTH,HEIGHT,MONO_VLSB);self.fill(0);self.show()
+	def __init__(self,bus=_A,freq=_A,sda=_A,scl=_A,addr=DEFAULT_ADDRESS):
+		self.i2c=create_unified_i2c(bus=bus,freq=freq,sda=sda,scl=scl);self.addr=addr;self.width=WIDTH;self._w1=bytes([WIDTH-1]);self.height=HEIGHT;self._h1=bytes([HEIGHT-1]);self.pages=HEIGHT//8;self._last_page=bytes([self.pages-1]);self.buffer=memoryview(bytearray(self.pages*WIDTH))
+		try:self.init_display();super().__init__(self.buffer,WIDTH,HEIGHT,MONO_VLSB);self.fill(0);self.show()
+		except Exception as e:raise RuntimeError(f"{e} {i2c_err_str.format(self.addr)}")
 	def init_display(self):
-		for cmd in(_SET_DISP,_SET_MEM_ADDR,0,_SET_DISP_START_LINE,_SET_SEG_REMAP|1,_SET_MUX_RATIO,HEIGHT-1,_SET_COM_OUT_DIR|8,_SET_DISP_OFFSET,0,_SET_COM_PIN_CFG,18,_SET_DISP_CLK_DIV,128,_SET_PRECHARGE,241,_SET_VCOM_DESEL,48,_SET_CONTRAST,255,_SET_ENTIRE_ON,_SET_NORM_INV,_SET_IREF_SELECT,48,_SET_CHARGE_PUMP,20,_SET_DISP|1):self.write_cmd(cmd)
-	def power_off(self):self.write_cmd(_SET_DISP)
-	def power_on(self):self.write_cmd(_SET_DISP|1)
-	def set_contrast(self,contrast):self.write_cmd(_SET_CONTRAST);self.write_cmd(contrast)
-	def invert(self,invert):self.write_cmd(_SET_NORM_INV|invert&1)
-	def rotate(self,rotate):self.write_cmd(_SET_COM_OUT_DIR|(rotate&1)<<3);self.write_cmd(_SET_SEG_REMAP|rotate&1)
-	def show(self):x0=0;x1=WIDTH-1;self.write_cmd(_SET_COL_ADDR);self.write_cmd(x0);self.write_cmd(x1);self.write_cmd(_SET_PAGE_ADDR);self.write_cmd(0);self.write_cmd(self.pages-1);self.write_data(self.buffer)
-	def write_cmd(self,cmd):
-		try:self.i2c.writeto_mem(self.addr,int.from_bytes(b'\x80','big'),bytes([cmd]));self.comms_err=_B
-		except Exception as e:print(e,i2c_err_str.format(self.addr));self.comms_err=True
-	def write_data(self,buf):
-		try:self.write_list[1]=buf;self.i2c.writeto_mem(self.addr,int.from_bytes(self.write_list[0],'big'),self.write_list[1]);self.comms_err=_B
-		except Exception as e:print(e,i2c_err_str.format(self.addr));self.comms_err=True
+		for cmd in(_SET_DISP,_SET_MEM_ADDR,_X0,_SET_DISP_START_LINE,_SET_SEG_REMAP_O1,_SET_MUX_RATIO,self._h1,_SET_COM_OUT_DIR_O8,_SET_DISP_OFFSET,_X0,_SET_COM_PIN_CFG,b'\x12',_SET_DISP_CLK_DIV,b'\x80',_SET_PRECHARGE,b'\xf1',_SET_VCOM_DESEL,b'0',_SET_CONTRAST,b'\xff',_SET_ENTIRE_ON,_SET_NORM_INV,_SET_IREF_SELECT,b'0',_SET_CHARGE_PUMP,b'\x14',_SET_DISP_O1):self._cmd(cmd)
+	def power_off(self):self._cmd(_SET_DISP)
+	def power_on(self):self._cmd(_SET_DISP_O1)
+	def set_contrast(self,contrast):self._cmd(_SET_CONTRAST);self._cmd(bytes([contrast]))
+	def invert(self,invert):self._cmd(bytes([int.from_bytes(_SET_NORM_INV,_B)|invert&1]))
+	def rotate(self,rotate):self._cmd(bytes([int.from_bytes(_SET_COM_OUT_DIR,_B)|(rotate&1)<<3]));self._cmd(bytes([int.from_bytes(_SET_SEG_REMAP,_B)|rotate&1]))
+	def show(self):self._cmd(_SET_COL_ADDR);self._cmd(_X0);self._cmd(self._w1);self._cmd(_SET_PAGE_ADDR);self._cmd(_X0);self._cmd(self._last_page);self.i2c.writeto_mem(self.addr,_DATA_CMD,self.buffer)
+	def _cmd(self,cmd):self.i2c.writeto_mem(self.addr,_CMD,cmd)
 	def circ(self,x,y,r,t=1,c=1):
 		for i in range(x-r,x+r+1):
 			for j in range(y-r,y+r+1):
@@ -89,7 +95,7 @@ class PiicoDev_SSD1306(FrameBuffer):
 	def load_pbm(self,filename,c):
 		with open(filename,'rb')as f:
 			line=f.readline()
-			if line.startswith(b'P4')is _B:print('Not a valid pbm P4 file');return
+			if line.startswith(b'P4')is False:print('Not a valid pbm P4 file');return
 			line=f.readline()
 			while line.startswith(b'#')is True:line=f.readline()
 			data_piicodev=bytearray(f.read())
@@ -99,7 +105,7 @@ class PiicoDev_SSD1306(FrameBuffer):
 					x_coordinate=(7-bit+byte*8)%WIDTH;y_coordinate=byte*8//WIDTH
 					if x_coordinate<WIDTH and y_coordinate<HEIGHT:self.pixel(x_coordinate,y_coordinate,c)
 	class graph2D:
-		def __init__(self,originX=0,originY=HEIGHT-1,width=WIDTH,height=HEIGHT,minValue=0,maxValue=255,c=1,bars=_B):self.minValue=minValue;self.maxValue=maxValue;self.originX=originX;self.originY=originY;self.width=width;self.height=height;self.c=c;self.m=(1-height)/(maxValue-minValue);self.offset=originY-self.m*minValue;self.bars=bars;self.data=[]
+		def __init__(self,originX=0,originY=HEIGHT-1,width=WIDTH,height=HEIGHT,minValue=0,maxValue=255,c=1,bars=False):self.minValue=minValue;self.maxValue=maxValue;self.originX=originX;self.originY=originY;self.width=width;self.height=height;self.c=c;self.m=(1-height)/(maxValue-minValue);self.offset=originY-self.m*minValue;self.bars=bars;self.data=[]
 	def updateGraph2D(self,graph,value):
 		graph.data.insert(0,value)
 		if len(graph.data)>graph.width:graph.data.pop()
